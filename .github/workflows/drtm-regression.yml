@@ -111,7 +111,7 @@ jobs:
               Base_RevC_AEMvA_pkg/models/Linux64_GCC-9.3/FVP_Base_RevC-2xAEMvA \
               --data cluster0.cpu0=trusted-firmware-a/build/fvp/debug/romlib/romlib.bin@0x03ff2000 \
               --stat \
-              -C bp.pl011_uart0.untimed_fifos=1 -C bp.pl011_uart0.unbuffered_output=1 -C bp.pl011_uart0.out_file=Drtm_regression.log -C bp.pl011_uart0.shutdown_tag="DRTM tests complete"\
+              -C bp.pl011_uart0.untimed_fifos=1 -C bp.pl011_uart0.unbuffered_output=1 -C bp.pl011_uart0.out_file=Drtm_regression.log -C bp.pl011_uart0.shutdown_tag="DRTM tests complete" \
               -C bp.pl011_uart1.untimed_fifos=1 -C bp.pl011_uart1.unbuffered_output=1 -C bp.pl011_uart1.out_file=Drtm_uart1.log \
               -C bp.flashloader0.fname=trusted-firmware-a/build/fvp/debug/fip.bin \
               -C bp.secureflashloader.fname=trusted-firmware-a/build/fvp/debug/bl1.bin \
