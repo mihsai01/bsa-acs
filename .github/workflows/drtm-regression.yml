@@ -89,7 +89,7 @@ jobs:
           - name: Compile TF-A
             run: |
               cd trusted-firmware-a
-              make CROSS_COMPILE=${GITHUB_WORKSPACE}/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf- ARM_ROTPK_LOCATION=devel_rsa DEBUG=1 V=1 BL33=FVP_AARCH64_EFI.fd DRTM_SUPPORT=1 MBEDTLS_DIR=${GITHUB_WORKSPACE}/mbedtls USE_ROMLIB=1 FVP_TRUSTED_SRAM_SIZE=512 clean all fip
+              make CROSS_COMPILE=${GITHUB_WORKSPACE}/arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf/bin/aarch64-none-elf- ARM_ROTPK_LOCATION=devel_rsa DEBUG=1 V=1 BL33=${GITHUB_WORKSPACE}/FVP_AARCH64_EFI.fd DRTM_SUPPORT=1 MBEDTLS_DIR=${GITHUB_WORKSPACE}/mbedtls USE_ROMLIB=1 FVP_TRUSTED_SRAM_SIZE=512 clean all fip
 
           - name: Create image from EFI
             run: |
