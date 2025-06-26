@@ -229,6 +229,12 @@ val_peripheral_dump_info(void)
 
       for (bus = start_bus; bus <= end_bus; bus++)
       {
+          if (pal_pcie_check_bus_valid(bus)) {
+              val_print(ACS_PRINT_DEBUG,
+               "       Bus 0x%x marked as invalid in Platform API...Skipping\n", bus);
+              continue;
+          }
+
           for (dev = 0; dev < PCIE_MAX_DEV; dev++)
           {
               for (func = 0; func < PCIE_MAX_FUNC; func++)
@@ -305,8 +311,17 @@ val_peripheral_create_info_table(uint64_t *peripheral_info_table)
 
   @return None
  **/
+
 void
-val_peripheral_free_info_table()
+val_peripheral_free_info_table(void)
 {
-  pal_mem_free_aligned((void *)g_peripheral_info_table);
+    if (g_peripheral_info_table != NULL) {
+        pal_mem_free_aligned((void *)g_peripheral_info_table);
+        g_peripheral_info_table = NULL;
+    }
+    else {
+      val_print(ACS_PRINT_ERR,
+                  "\n WARNING: g_peripheral_info_table pointer is already NULL",
+        0);
+    }
 }

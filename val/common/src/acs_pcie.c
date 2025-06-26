@@ -567,6 +567,12 @@ val_pcie_create_device_bdf_table()
       /* Iterate over all buses, devices and functions in this ecam */
       for (bus_index = start_bus; bus_index <= end_bus; bus_index++)
       {
+          if (pal_pcie_check_bus_valid(bus_index)) {
+              val_print(ACS_PRINT_DEBUG,
+               "       Bus 0x%x marked as invalid in Platform API...Skipping\n", bus_index);
+              continue;
+          }
+
           for (dev_index = 0; dev_index < PCIE_MAX_DEV; dev_index++)
           {
               for (func_index = 0; func_index < PCIE_MAX_FUNC; func_index++)
@@ -720,10 +726,19 @@ val_pcie_bdf_table_ptr()
 
   @return None
 **/
+
 void
-val_pcie_free_info_table()
+val_pcie_free_info_table(void)
 {
-  pal_mem_free_aligned((void *)g_pcie_info_table);
+    if (g_pcie_info_table != NULL) {
+        pal_mem_free_aligned((void *)g_pcie_info_table);
+        g_pcie_info_table = NULL;
+    }
+    else {
+      val_print(ACS_PRINT_ERR,
+                  "\n WARNING: g_pcie_info_table pointer is already NULL",
+        0);
+    }
 }
 
 

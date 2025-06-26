@@ -466,6 +466,7 @@ void pal_pcie_io_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data);
 uint32_t pal_bsa_pcie_enumerate(void);
 uint32_t pal_pcie_check_device_list(void);
 uint32_t pal_pcie_check_device_valid(uint32_t bdf);
+uint32_t pal_pcie_check_bus_valid(uint32_t bus_index);
 uint32_t pal_pcie_mem_get_offset(uint32_t bdf, PCIE_MEM_TYPE_INFO_e mem_type);
 
 uint32_t pal_pcie_bar_mem_read(uint32_t bdf, uint64_t address, uint32_t *data);
@@ -519,7 +520,7 @@ typedef union {
   ID_MAP map;
 }NODE_DATA_MAP;
 
-#define MAX_NAMED_COMP_LENGTH 256
+#define MAX_NAMED_COMP_LENGTH 150
 
 typedef struct {
   uint64_t smmu_base;                  /* SMMU base to which component is attached, else NULL */
@@ -719,6 +720,10 @@ typedef struct {
   void            *port;
   void            *host;     // It will be used only by PAL. hence void.
   uint32_t        flags;
+#ifdef TARGET_LINUX
+  uint64_t        dma_sg_address;
+  uint64_t        dma_sg_length;
+#endif
 }DMA_INFO_BLOCK;
 
 typedef struct {

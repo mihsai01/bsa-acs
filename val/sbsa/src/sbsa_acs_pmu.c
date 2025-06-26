@@ -16,6 +16,7 @@
  **/
 
 #include "sbsa/include/sbsa_val_interface.h"
+#include "common/include/acs_mmu.h"
 #include "common/include/acs_val.h"
 #include "common/include/acs_common.h"
 #include "sbsa/include/sbsa_acs_pmu.h"
@@ -51,7 +52,10 @@ val_pmu_create_info_table(uint64_t *pmu_info_table)
             g_pmu_info_table->pmu_count);
 
   for (node_index = 0; node_index < g_pmu_info_table->pmu_count; node_index++) {
+      val_print(ACS_PRINT_INFO, " PMU node index: %4d\n", node_index);
       base = val_pmu_get_info(PMU_NODE_BASE0, node_index);
+      val_mmu_update_entry(base, 0x1000);
+      val_print(ACS_PRINT_INFO, " PMU node mapped \n", 0);
       reg_value = BITFIELD_READ(PMDEVARCH_ARCHITECT, val_mmio_read(base + REG_PMDEVARCH));
       /* 0x23B is value for Arm Limited */
       if (reg_value == 0x23B)
@@ -90,11 +94,19 @@ val_pmu_set_node_coresight_complaint(uint32_t flag, uint32_t node_index)
 /**
   @brief  Free the memory allocated for the PMU information table
 **/
+
 void
-val_pmu_free_info_table()
+val_pmu_free_info_table(void)
 {
-  pal_mem_free_aligned((void *)g_pmu_info_table);
-  g_pmu_info_table = NULL;
+    if (g_pmu_info_table != NULL) {
+        pal_mem_free_aligned((void *)g_pmu_info_table);
+        g_pmu_info_table = NULL;
+    }
+    else {
+      val_print(ACS_PRINT_ERR,
+                  "\n WARNING: g_pmu_info_table pointer is already NULL", 
+        0);
+    }
 }
 
 /**

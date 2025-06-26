@@ -1,3 +1,21 @@
+### 📢 Repository Notice — Project Restructure
+
+> **Status Update (June 2025)**
+> The **BSA-ACS** and **SBSA-ACS** repositories are now ***read-only***.
+
+> Development has moved to the consolidated **[`sysarch-acs`](https://github.com/ARM-software/sysarch-acs)** repository, which hosts the test suites for BSA, SBSA, and future system-standard compliance suites.
+
+| What changed?                      | Where to contribute now?                               |
+| ---------------------------------- | ------------------------------------------------------ |
+| **Code updates**                   | Open pull requests in **`sysarch-acs`**                |
+| **Bug reports / feature requests** | Create GitHub issues in **`sysarch-acs`**              |
+| **Open PRs & issues here**         | The ACS team will migrate or close them as appropriate |
+
+We appreciate your cooperation as we streamline our codebase.
+For questions, please contact the ACS maintainers or open an issue in **`sysarch-acs`**.
+
+-------------------------------------------------------------------------------------------------------------------
+
 # Base System Architecture - Architecture Compliance Suite
 
 [![BSA-ACS Build Check](https://github.com/ARM-software/bsa-acs/actions/workflows/bsa-acs_build_check.yml/badge.svg)](https://github.com/ARM-software/bsa-acs/actions/workflows/bsa-acs_build_check.yml)
@@ -181,51 +199,127 @@ Certain Peripheral, PCIe and Memory map tests require Linux operating system.Thi
 This section lists the porting and build steps for the kernel module.
 The patch for the kernel tree and the Linux PAL are hosted separately on [linux-acs](https://git.gitlab.arm.com/linux-arm/linux-acs.git) repo
 
-### 1.1 Building the kernel module
 #### Prerequisites
+ACS build requires that the following requirements are met, Please skip this if you are using [Linux Build Script](https://gitlab.arm.com/linux-arm/linux-acs/-/blob/master/acs-drv/files/build.sh?ref_type=heads)
 - Linux kernel source version 5.11, 5.13, 5.15, 6.0, 6.4, 6.7, 6.8
 - Install GCC-ARM 13.2 [toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).
 - Build environment for AArch64 Linux kernel.<br />
 NOTE: <br />
 - Linux version 6.8 is recommended version.
 
-#### Porting steps for Linux kernel
+
+#### 1.1 Building the Kernel Module, App (Script)
+
+The following steps describe how to build the BSA kernel module and application using the build.sh script.
+The build.sh script supports both native builds and cross-compilation.
+- For Native Builds, run the script directly on the target machine.
+- For Cross-Compilation, pass the Linux version and GCC tool version as script arguments. 
+
+##### Linux Build Steps (Script)
+
+1. wget https://gitlab.arm.com/linux-arm/linux-acs/-/raw/master/acs-drv/files/build.sh
+2. chmod +x build.sh
+3. source build.sh
+
+##### Build Output
+
+The following output folder is created in __build__ folder:
+ - bsa_acs.ko
+ - bsa_app
+
+#### 1.2 Building the Kernel Module, App (Manual)
+
+The following steps describe how to build the BSA kernel module and application for the system manually.
+
+##### Build steps for BSA kernel module
 1. git clone https://git.gitlab.arm.com/linux-arm/linux-acs.git linux-acs
 2. git clone https://github.com/ARM-software/bsa-acs.git bsa-acs
-3. git clone https://github.com/torvalds/linux.git -b v6.8
-4. export CROSS_COMPILE=<GCC13.2 toolchain path> pointing to /bin/aarch64-linux-gnu-
-5. git apply <local_dir>/linux-acs/kernel/src/0001-BSA-ACS-Linux-6.8.patch to your kernel source tree.
-6. make ARCH=arm64 defconfig && make -j $(nproc) ARCH=arm64
+3. cd <local_dir>/linux-acs/files
+4. export CROSS_COMPILE=<ARM64 toolchain path>/bin/aarch64-linux-gnu-
+5. export KERNEL_SRC=/lib/modules/$(uname -r)/build
+6. ./bsa_setup.sh <local_dir/bsa-acs>
+7. ./linux_bsa_acs.sh
 
-NOTE: The steps mentions Linux version 6.8, as it is latest version which is verified at ACS end.
+__Note:__
+- If the path /lib/modules/$(uname -r)/build does not exist on the native system, install the kernel headers using:
+```sh
+shell> sudo apt-get install linux-headers-$(uname -r)
 
-#### 1.2 Build steps for BSA kernel module
-1. cd <local_dir>/linux-acs/files
-2. export CROSS_COMPILE=<ARM64 toolchain path>/bin/aarch64-linux-gnu-
-3. export KERNEL_SRC=<linux_kernel_path>
-4. ./bsa_setup.sh <local_dir/bsa-acs>
-5. ./linux_bsa_acs.sh
+```
+- In case of cross-compilation, the __KERNEL_SRC__ variable must be set to point to the Linux kernel build output directory for the target architecture.
+
 
 Successful completion of above steps will generate bsa_acs.ko
 
-#### 1.3 BSA Linux application build
+##### BSA Linux application build
 1. cd <bsa-acs path>/linux_app/bsa-acs-app
 2. export CROSS_COMPILE=<ARM64 toolchain path>/bin/aarch64-linux-gnu-
 3. make
 
 Successful completion of above steps will generate executable file bsa
 
-### 2. Loading the kernel module
+### 2. Steps for Running BSA Tests in Linux
+
+#### 2.1 Loading the kernel module
 Before the BSA ACS Linux application can be run, load the BSA ACS kernel module using the insmod command.
 ```sh
-shell> insmod bsa_acs.ko
+shell>sudo insmod bsa_acs.ko
 ```
 
-### 3. Running BSA ACS
+#### 2.2 Running BSA ACS
 ```sh
-shell> ./bsa
+shell> ./bsa_app or ./bsa
+
 ```
+
   - For information on the BSA Linux application parameters, see the [User Guide](docs/arm_bsa_architecture_compliance_user_guide.pdf).
+
+#### 2.3 BSA Linux Test Log View
+```sh
+shell> sudo dmesg | tail -500 # print last 500 kernel logs
+
+```
+
+#### 2.4 Remove the BSA module
+
+After the run is complete, you can remove the BSA module from the system if it is no longer needed.
+
+```sh
+shell> sudo rmmod bsa_acs
+
+```
+
+### Build Script aguments
+The following arguments can be used when running the build.sh script:
+
+- __-v or --version__ \- Specifies the Linux kernel version to be used for cross-compilation.
+                    If not provided, the default version is 6.8.
+
+- __--GCC_TOOLS__     \-  Specifies the GCC toolchain version for cross-compilation.
+                    The default version is 13.2.rel1.
+
+- __--help__          \-  Displays information about the ACS build environment, including default values,
+                    usage instructions, and additional notes.
+
+- __--clean__         \-  Removes the output folder build, which contains the resulting modules
+                    and applications from the build.
+
+- __--clean_all__     \-  Removes all downloaded repositories and build-related files,
+                    including the output directory.
+
+
+### Limitations
+⚠️ **Note:**: DMA-related tests have not been verified.
+
+For cross-compilation platforms, if you want compatibility with the target system, ensure that the Linux source version matches the version running on the target device.
+
+Example:
+ - Linux source version: 5.15
+ - Target AArch64 machine kernel version: 5.15.0-139-generic
+
+-  If the versions do not match exactly, the module may fail to load due to an invalid module format.
+
+- ✅ If both versions are identical (e.g., both are 5.15), the build will work correctly — similar to how it works for a SystemReady image.
 
 ## ACS build steps - Bare-metal abstraction
 
